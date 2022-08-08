@@ -43,6 +43,72 @@ the code.
 
 ***
 
+## Creating a Join Table
+
+Right now, we've got code for the `Game` model (and the `games` table), along
+with the code for the `Review` model (and the `reviews` table) from the previous
+lesson.
+
+To start, let's add the code we'll need for the `User` model as well. Let's
+create the `users` table with a `name` column and timestamps:
+
+```py
+# app/db.py
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+    created_at = Column(DateTime(), default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
+
+    # don't forget your __repr__!
+    def __repr__(self):
+        return f'User(id={self.id}, ' + \
+            f'name={self.name})'
+```
+
+We'll also need to modify the `reviews` table and add a foreign key to refer to
+our `users` table. Remember, each review now **belongs to** a specific user. Any
+time we create a **belongs to** relationship, we need a foreign key to establish
+this relationship:
+
+```py
+# app/db.py
+
+# User model
+    reviews = relationship('Review', backref=backref('user'))
+```
+
+Let's also edit the `Review` model to add our new foreign key:
+
+```py
+# app/db.py
+
+# Review model
+    user_id = Column(Integer(), ForeignKey('users.id'))
+```
+
+Now run `alembic revision --autogenerate -m'Add User model'` from the
+`many-to-many` directory to make our migration. If all goes well, run
+`alembic upgrade head` to push your migrations to the database.
+
+```console
+$ alembic upgrade head
+# => INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+# => INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+# => INFO  [alembic.runtime.migration] Running upgrade  -> 9e396fc70825, Add User model
+```
+
+Run the seed file as well to populate the `games` and `reviews` tables:
+
+```console
+$ python app/seed.py
+```
+
+***
+
 ## Lesson Section
 
 Lorem ipsum dolor sit amet. Ut velit fugit et porro voluptas quia sequi quo
@@ -107,7 +173,7 @@ will be able to do moving forward.
 
 ## Resources
 
-- [Resource 1](https://www.python.org/doc/essays/blurb/)
-- [Reused Resource][reused resource]
-
-[reused resource]: https://docs.python.org/3/
+- [Python 3.8.13 Documentation](https://docs.python.org/3/)
+- [SQLAlchemy ORM Documentation](https://docs.sqlalchemy.org/en/14/orm/)
+- [Alembic 1.8.1 Documentation](https://alembic.sqlalchemy.org/en/latest/)
+- [Basic Relationship Patterns - SQLAlchemy](https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html)
