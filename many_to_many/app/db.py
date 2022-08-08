@@ -1,11 +1,10 @@
 import os
 import sys
-from turtle import back
 
 sys.path.append(os.getcwd)
 
 from sqlalchemy import create_engine, func
-from sqlalchemy import ForeignKey, Table, Column, Integer, String, DateTime
+from sqlalchemy import ForeignKey, Table, Column, Integer, String
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -75,7 +74,7 @@ class User(Base):
 
     reviews = relationship('Review', backref=backref('user'))
     games = relationship('Game', secondary=game_user, back_populates='users')
-
+    
     def __repr__(self):
         return f'User(id={self.id}, ' + \
             f'name={self.name})'
