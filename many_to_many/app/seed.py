@@ -6,7 +6,7 @@ import random
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from db import Game, Review
+from db import Game, Review, User
 
 if __name__ == '__main__':
     engine = create_engine('sqlite:///many_to_many.db')
@@ -39,13 +39,27 @@ if __name__ == '__main__':
 
         games.append(game)
 
+    users = []
+    for i in range(25):
+        user = User(
+            name=fake.name(),
+        )
+
+        # add and commit individually to get IDs back
+        session.add(user)
+        session.commit()
+
+        users.append(user)
+
+
     reviews = []
     for game in games:
         for i in range(random.randint(1,5)):
             review = Review(
                 score=random.randint(0, 10),
                 comment=fake.sentence(),
-                game_id=game.id
+                game_id=game.id,
+                user_id=random.choice(users).id,
             )
 
             reviews.append(review)
