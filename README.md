@@ -60,7 +60,7 @@ class User(Base):
 
     id = Column(Integer(), primary_key=True)
     name = Column(String())
-    created_at = Column(DateTime(), default=func.now())
+    created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
 
     # don't forget your __repr__!
@@ -68,6 +68,19 @@ class User(Base):
         return f'User(id={self.id}, ' + \
             f'name={self.name})'
 ```
+
+Note that for our models' timestamps, we are using some new arguments and
+values:
+
+- `server_default` tells the database schema to set a value from the database
+  itself. Since the database is kept in one central location, assigning it the
+  work of creating default values means that we don't have to worry about the
+  quality of our developers' or users' computers.
+- `onupdate` means exactly what it says: when the record is updated, the
+  column value is set.
+- We saw `func` briefly in the previous module; it allows us to use SQL
+  operations instead of their Python counterparts. This benefits us for the same
+  reasons as `server_default`. `func.now()` is equivalent to the current time.
 
 We'll also need to modify the `reviews` table and add a foreign key to refer to
 our `users` table. Remember, each review now **belongs to** a specific user. Any
@@ -204,73 +217,51 @@ A few more notes on this approach:
   relationships are symmetrical, use of `back_populates` in both models is the
   best way to leave readable code behind for other developers.
 
-***
-
-## Association Proxies
-
-.
-
-***
-
-## Lesson Section
-
-Lorem ipsum dolor sit amet. Ut velit fugit et porro voluptas quia sequi quo
-libero autem qui similique placeat eum velit autem aut repellendus quia. Et
-Quis magni ut fugit obcaecati in expedita fugiat est iste rerum qui ipsam
-ducimus et quaerat maxime sit eaque minus. Est molestias voluptatem et nostrum
-recusandae qui incidunt Quis 33 ipsum perferendis sed similique architecto.
+Run `alembic revision --autogenerate -m'Add game_user Association Table'`, then
+`alembic upgrade head`. You can use the script in `app/seed.py` to generate new
+data and interact with your database through the Python shell. To create
+relationships between `Game` records and `User` records, open the script and
+un-comment the block starting at line 60:
 
 ```py
-# python code block
-print("statement")
-# => statement
+# app/seed.py
+
+if game not in user.games:
+    user.games.append(game)
+    session.add(user)
+    session.commit()
 ```
 
-```js
-// javascript code block
-console.log("use these for comparisons between languages.")
-// => use these for comparisons between languages.
-```
-
-```console
-echo "bash/zshell statement"
-# => bash/zshell statement
-```
-
-<details>
-  <summary>
-    <em>Check for understanding text goes here! <code>Code statements go here.</code></em>
-  </summary>
-
-  <h3>Answer.</h3>
-  <p>Elaboration on answer.</p>
-</details>
-<br/>
-
-***
-
-## Instructions
-
-This is a **test-driven lab**. Run `pipenv install` to create your virtual
-environment and `pipenv shell` to enter the virtual environment. Then run
-`pytest -x` to run your tests. Use these instructions and `pytest`'s error
-messages to complete your work in the `lib/` folder.
-
-Instructions begin here:
-
-- Make sure to specify any class, method, variable, module, package names
-  that `pytest` will check for.
-- Any other instructions go here.
-
-Once all of your tests are passing, commit and push your work using `git` to
-submit.
+This will add a `Game` record to a `User` record's `games` if the user has
+logged a review for the game. When the change is committed, SQLAlchemy also
+builds the relationship in reverse, adding the `User` record to the `Game`
+record's `users`!
 
 ***
 
 ## Conclusion
 
-Conclusion summary paragraph. Include common misconceptions and what students
-will be able to do moving forward.
+The power of SQLAlchemy all boils down to understanding database
+relationships and making use of the correct classes and methods. By leveraging
+"convention over configuration", we're able to quickly set up complex
+associations between multiple models with just a few lines of code.
+
+The **one-to-many** and **many-to-many** relationships are the most common when
+working with relational databases. You can apply the same concepts and code we
+used in this lesson to any number of different domains, for example:
+
+```txt
+Driver -< Ride >- Passenger
+Doctor -< Appointment >- Patient
+Actor -< Character >- Movie
+```
+
+The code required to set up these relationships would look very similar to the
+code we wrote in this lesson.
+
+By understanding the conventions SQLAlchemy expects you to follow, and how
+the underlying database relationships work, you have the ability to model all
+kinds of complex, real-world concepts in your code!
 
 ***
 

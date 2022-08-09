@@ -15,6 +15,7 @@ if __name__ == '__main__':
 
     session.query(Game).delete()
     session.query(Review).delete()
+    session.query(User).delete()
 
     fake = Faker()
 
@@ -55,15 +56,21 @@ if __name__ == '__main__':
     reviews = []
     for game in games:
         for i in range(random.randint(1,5)):
+            user = random.choice(users)
+            # if game not in user.games:
+            #     user.games.append(game)
+            #     session.add(user)
+            #     session.commit()
+            
             review = Review(
                 score=random.randint(0, 10),
                 comment=fake.sentence(),
                 game_id=game.id,
-                user_id=random.choice(users).id,
+                user_id=user.id,
             )
 
             reviews.append(review)
-    
+
     session.bulk_save_objects(reviews)
     session.commit()
     session.close()

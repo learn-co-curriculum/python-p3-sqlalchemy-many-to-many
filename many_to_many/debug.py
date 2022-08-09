@@ -3,7 +3,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# from app.db import Game, Review, User, GameUser
+# from app.db import Game, Review, User
 
 if __name__ == '__main__':
     
