@@ -154,8 +154,8 @@ models' names, so let's call ours **`GameUser`**.
 class GameUser(Base):
     __tablename__ = "game_users"
 
-    game_id = Column(ForeignKey('games.id'), primary_key=True)
-    user_id = Column(ForeignKey('users.id'), primary_key=True)
+    game_id = Column(ForeignKey('games.game_id'), primary_key=True)
+    user_id = Column(ForeignKey('users.user_id'), primary_key=True)
 
     game = relationship('Game', backref=backref('users'))
     user = relationship('User', backref=backref('games'))
@@ -192,8 +192,8 @@ Let's build the same association table as above with our new syntax:
 game_user = Table(
     'game_users',
     Base.metadata,
-    Column('game_id', ForeignKey('games.id'), primary_key=True),
-    Column('user_id', ForeignKey('users.id'), primary_key=True)
+    Column('game_id', ForeignKey('games.game_id'), primary_key=True),
+    Column('user_id', ForeignKey('users.user_id'), primary_key=True)
 )
 
 # Game
