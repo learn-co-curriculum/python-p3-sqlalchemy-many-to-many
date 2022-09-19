@@ -38,7 +38,7 @@ Once we're done setting up the database tables, here's what the ERD will look li
 
 ![Game Reviews ERD](https://curriculum-content.s3.amazonaws.com/phase-3/active-record-associations-many-to-many/games-reviews-users-erd.png)
 
-To get started, run `pipenv install` and `pipenv shell`, then follow along with
+To get started, run `pipenv install && pipenv shell`, then follow along with
 the code.
 
 ***
@@ -53,7 +53,7 @@ To start, let's add the code we'll need for the `User` model as well. Let's
 create the `users` table with a `name` column and timestamps:
 
 ```py
-# app/db.py
+# models.py
 
 class User(Base):
     __tablename__ = 'users'
@@ -63,7 +63,7 @@ class User(Base):
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
 
-    # don't forget your __repr__!
+    # don't forget your __repr__()!
     def __repr__(self):
         return f'User(id={self.id}, ' + \
             f'name={self.name})'
@@ -88,19 +88,31 @@ time we create a **belongs to** relationship, we need a foreign key to establish
 this relationship:
 
 ```py
-# app/db.py
+# models.py
 
-# User model
+class User(Base):
+
+    # tablename, columns
+
     reviews = relationship('Review', backref=backref('user'))
+
+    # __repr__()
+
 ```
 
 Let's also edit the `Review` model to add our new foreign key:
 
 ```py
-# app/db.py
+# models.py
 
-# Review model
+class Review(Base):
+
+    # tablename, columns
+
     user_id = Column(Integer(), ForeignKey('users.id'))
+
+    # __repr__()
+
 ```
 
 Now run `alembic revision --autogenerate -m'Add User model'` from the
@@ -117,7 +129,7 @@ $ alembic upgrade head
 Run the seed file as well to populate the `games` and `reviews` tables:
 
 ```console
-$ python app/seed.py
+$ python seed.py
 ```
 
 ***
@@ -145,11 +157,11 @@ approach, `Table` objects.
 ### Many-to-Many with an Association Object
 
 An association object is really just another model, so let's add one into
-`app/db.py`. The convention is to call this model a combination of the related
+`models.py`. The convention is to call this model a combination of the related
 models' names, so let's call ours **`GameUser`**.
 
 ```py
-# app/db.py
+# models.py
 
 class GameUser(Base):
     __tablename__ = "game_users"
@@ -163,11 +175,12 @@ class GameUser(Base):
     def __repr__(self):
         return f'GameUser(game_id={self.game_id}, ' + \
             f'user_id={self.user_id})'
+
 ```
 
-An association object should use a combination of the related models' primary
-keys as its own primary key. This allows us to keep the field unique while
-also making it clear which two records its records point to.
+An association object should typically use a combination of the related models'
+primary keys as its own primary key. This allows us to keep the field unique
+while also making it clear which two records its records point to.
 
 Next, we use the `relationship()` method to connect to both the `Game` and
 `User` models. Note that we refer to the other related table in our `backref()`
@@ -181,13 +194,13 @@ Finally- don't forget your `__repr__`!
 
 `Table` objects are instances of the `sqlalchemy.Table` class. They function
 more or less the same as data models, with the exception of being a little
-more compact. This syntax de-emphasizes association tables in your models and
-is the preferred approach in SQLAlchemy.
+more compact. This syntax visually de-emphasizes association tables in your
+models and is the preferred approach in SQLAlchemy.
 
 Let's build the same association table as above with our new syntax:
 
 ```py
-# app/db.py
+# models.py
 
 game_user = Table(
     'game_users',
@@ -196,11 +209,22 @@ game_user = Table(
     Column('user_id', ForeignKey('users.id'), primary_key=True)
 )
 
-# Game
+class Game(Base):
+
+    # tablename, columns
+
     users = relationship('User', secondary=game_user, back_populates='games')
 
-# User
+    # __repr__()
+
+class User(Base):
+
+    # tablenames, columns
+
     games = relationship('Game', secondary=game_user, back_populates='users')
+
+    # __repr__()
+
 ```
 
 Because we are creating an object that is being used in subsequent code,
@@ -221,21 +245,122 @@ Run `alembic revision --autogenerate -m'Add game_user Association Table'`, then
 `alembic upgrade head`. You can use the script in `app/seed.py` to generate new
 data and interact with your database through the Python shell. To create
 relationships between `Game` records and `User` records, open the script and
-un-comment the block starting at line 60:
+un-comment the block starting at line 42:
 
 ```py
-# app/seed.py
+# seed.py
 
+from models import User
+session.query(User).delete()
+
+users = []
+for i in range(25):
+    user = User(
+        name=fake.name(),
+    )
+
+    session.add(user)
+    session.commit()
+
+    users.append(user)
+```
+
+...the block starting at line 60:
+
+```py
+# seed.py
+
+user = random.choice(users)
 if game not in user.games:
     user.games.append(game)
     session.add(user)
     session.commit()
 ```
 
+...and line 70:
+
+```py
+user_id=user.id,
+```
+
+Now, run the seed file with `python seed.py`.
+
 This will add a `Game` record to a `User` record's `games` if the user has
 logged a review for the game. When the change is committed, SQLAlchemy also
 builds the relationship in reverse, adding the `User` record to the `Game`
 record's `users`!
+
+### Association Object Models
+
+We all know that users can have games without reviewing them. That being said,
+our application might not allow users to claim ownership of a game without
+posting a review! If this is the case, we can consider skipping a join table
+entirely and use `Review` to join `User` and `Game`. This syntax is a bit more
+complicated, but you might find it useful in certain situations (perhaps like
+the _Phase 3 Code Challenge?_)
+
+An association object functioning as a traditional data model looks like a
+combination of the two, with some key differences:
+
+```py
+
+class Game(Base):
+
+    # tablename, columns
+
+    users = relationship(
+        'User',
+        secondary='reviews',
+        viewonly=True,
+        backref='games')
+
+    # __repr__()
+
+class User(Base):
+
+    # no need for a relationship here!
+    # back_populates() is one-way, but backref() takes care of both in
+    # the Game model.
+
+class Review(Base):
+    __tablename__ = 'reviews'
+
+    id = Column(Integer(), primary_key=True)
+    score = Column(Integer())
+    comment = Column(String())
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
+
+    game_id = Column(Integer(), ForeignKey(Game.id))
+    game = relationship('Game', backref=backref('reviews'))
+
+    user_id = Column(Integer(), ForeignKey(User.id))
+    user = relationship(
+        'User', backref=backref('reviews')
+    )
+
+    def __repr__(self):
+        return f'Review(id={self.id}, ' + \
+            f'score={self.score}, ' + \
+            f'game_id={self.game_id})'
+
+```
+
+In this instance, we used `backref()` in place of `back_populates`. It is
+often more clear to use `back_populates` because it explicitly declares a
+relationship on both sides, but `backref()` populates both sides of the
+relationship and saves us a bit of code.
+
+The `Review` model has gotten rather big here, but it's doing more than enough
+to justify it:
+
+- `game_id` creates a relationship between reviews and games.
+- `game` creates a game object that belongs to the review.
+- `user_id` creates a relationship between reviews and users.
+- `user` creates a user object that belongs to the review.
+
+Because of those object relationships, the `relationship()` call in the `Game`
+model is able to skip over the `Review` model and directly link games and users.
 
 ***
 
