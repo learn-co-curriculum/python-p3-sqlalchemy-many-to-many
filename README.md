@@ -206,7 +206,8 @@ game_user = Table(
     'game_users',
     Base.metadata,
     Column('game_id', ForeignKey('games.id'), primary_key=True),
-    Column('user_id', ForeignKey('users.id'), primary_key=True)
+    Column('user_id', ForeignKey('users.id'), primary_key=True),
+    extend_existing=True,
 )
 
 class Game(Base):
@@ -303,6 +304,9 @@ An association object functioning as a traditional data model looks like a
 combination of the two, with some key differences:
 
 ```py
+# models.py
+# intended as example only.
+# downgrade to remove game_users before trying this out.
 
 class Game(Base):
 
