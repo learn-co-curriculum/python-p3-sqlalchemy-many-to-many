@@ -50,8 +50,5 @@ jspm_packages
 # pytest cache
 .pytest_cache
 
-# migrations versions
-*/migrations/versions
-
 # sqlite databases
 */*.db
