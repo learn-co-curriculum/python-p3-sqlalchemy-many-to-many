@@ -126,7 +126,7 @@ $ alembic upgrade head
 # => INFO  [alembic.runtime.migration] Running upgrade  -> 9e396fc70825, Add User model
 ```
 
-Run the seed file as well to populate the `games` and `reviews` tables:
+Run the first seed file as well to populate the `games` and `reviews` tables:
 
 ```console
 $ python seed.py
@@ -243,48 +243,10 @@ A few more notes on this approach:
   best way to leave readable code behind for other developers.
 
 Run `alembic revision --autogenerate -m'Add game_user Association Table'`, then
-`alembic upgrade head`. You can use the script in `app/seed.py` to generate new
+`alembic upgrade head`. You can use the script in `app/seed_2.py` to generate new
 data and interact with your database through the Python shell. To create
-relationships between `Game` records and `User` records, open the script and
-un-comment the block starting at line 42:
-
-```py
-# seed.py
-
-from models import User
-session.query(User).delete()
-
-users = []
-for i in range(25):
-    user = User(
-        name=fake.name(),
-    )
-
-    session.add(user)
-    session.commit()
-
-    users.append(user)
-```
-
-...the block starting at line 60:
-
-```py
-# seed.py
-
-user = random.choice(users)
-if game not in user.games:
-    user.games.append(game)
-    session.add(user)
-    session.commit()
-```
-
-...and line 70:
-
-```py
-user_id=user.id,
-```
-
-Now, run the seed file with `python seed.py`.
+relationships between `Game` records and `User` records, run the second seed
+file with `python seed_2.py`.
 
 This will add a `Game` record to a `User` record's `games` if the user has
 logged a review for the game. When the change is committed, SQLAlchemy also
