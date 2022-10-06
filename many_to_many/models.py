@@ -8,7 +8,7 @@ from sqlalchemy import ForeignKey, Table, Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 
-engine = create_engine('sqlite:///db/many_to_many.db')
+engine = create_engine('sqlite:///many_to_many.db')
 
 Base = declarative_base()
 
