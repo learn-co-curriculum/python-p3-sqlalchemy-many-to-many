@@ -7,7 +7,7 @@ from models import Game, Review # User
 
 if __name__ == '__main__':
     
-    engine = create_engine('sqlite:///db/many_to_many.db')
+    engine = create_engine('sqlite:///many_to_many.db')
     Session = sessionmaker(bind=engine)
     session = Session()
 
