@@ -265,6 +265,8 @@ the _Phase 3 Code Challenge?_)
 An association object functioning as a traditional data model looks like a
 combination of the two, with some key differences:
 
+> **NOTE: Remember to delete your `Table` object before trying this out!**
+
 ```py
 # models.py
 # intended as example only.
