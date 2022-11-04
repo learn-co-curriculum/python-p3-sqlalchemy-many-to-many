@@ -425,6 +425,8 @@ class Review(Base):
     updated_at = Column(DateTime(), onupdate=func.now())
 
     game_id = Column(Integer(), ForeignKey('games.id'))
+    user_id = Column(Integer(), ForeignKey('users.id'))
+
 
     def __repr__(self):
         return f'Review(id={self.id}, ' + \
