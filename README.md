@@ -260,7 +260,7 @@ logged a review for the game. When the change is committed, SQLAlchemy also
 builds the relationship in reverse, adding the `User` record to the `Game`
 record's `users`!
 
-### Association Object Models
+### Bonus: Association Object Models
 
 We all know that users can have games without reviewing them. That being said,
 our application might not allow users to claim ownership of a game without
