@@ -156,12 +156,12 @@ approach, `Table` objects.
 
 ### Many-to-Many with an Association Object
 
-An association object is really just another model, so let's add one into
-`models.py`. The convention is to call this model a combination of the related
-models' names, so let's call ours **`GameUser`**.
+An association object is really just another model, so we can create a
+**`GameUser`** model using our `Base` object and simply build relationships
+in either direction, as seen below:
 
 ```py
-# models.py
+# example only
 
 class GameUser(Base):
     __tablename__ = "game_users"
@@ -172,10 +172,6 @@ class GameUser(Base):
 
     game = relationship('Game', back_populates='game_users')
     user = relationship('User', back_populates='game_users')
-
-    def __init__(self, game=None, user=None):
-        self.game = game
-        self.user = user
 
     def __repr__(self):
         return f'GameUser(game_id={self.game_id}, ' + \
@@ -195,58 +191,11 @@ populate each model with all the fields it needs without accidentally doing it
 twice. `back_populates` needs to be set up on both sides, but in cases like
 these, it's worth the (minimal) extra work.
 
-Below this, we define an `__init__` method. This is the piece that will
-ultimately allow us to directly add games to users and vice versa.
-
-Take a look at the rest of the code- think about what's changed from the last
-lesson:
-
-```py
-class Game(Base):
-    __tablename__ = 'games'
-
-    id = Column(Integer(), primary_key=True)
-    title = Column(String())
-    genre = Column(String())
-    platform = Column(String())
-    price = Column(Integer())
-    created_at = Column(DateTime(), server_default=func.now())
-    updated_at = Column(DateTime(), onupdate=func.now())
-
-    reviews = relationship('Review', backref=backref('game'))
-    game_users = relationship('GameUser', back_populates='game')
-    users = association_proxy('game_users', 'user',
-        creator=lambda us: GameUser(user=us))
-
-    def __repr__(self):
-
-        return f'Game(id={self.id}, ' + \
-            f'title={self.title}, ' + \
-            f'platform={self.platform})'
-
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer(), primary_key=True)
-    name = Column(String())
-    created_at = Column(DateTime(), server_default=func.now())
-    updated_at = Column(DateTime(), onupdate=func.now())
-
-    reviews = relationship('Review', backref=backref('user'))
-    game_users = relationship('GameUser', back_populates='user')
-    games = association_proxy('game_users', 'game',
-        creator=lambda gm: GameUser(game=gm))
-
-    def __repr__(self):
-
-        return f'User(id={self.id}, ' + \
-            f'name={self.name})'
-
-```
-
-Did you notice the
-
 Finally- don't forget your `__repr__`!
+
+While this approach works, it's a bit wordy for a table that only exists to
+connect two others. The preferred approach to define many-to-many relationships
+using SQLAlchemy is with `Table` objects.
 
 ### Many-to-Many with `Table` Objects
 
@@ -323,59 +272,75 @@ the _Phase 3 Code Challenge?_)
 An association object functioning as a traditional data model looks like a
 combination of the two, with some key differences:
 
-> **NOTE: Remember to delete your `Table` object before trying this out!**
+> **NOTE: Remember to delete your `Table` object if you intend to try this
+> out!**
 
 ```py
-# models.py
-# intended as example only.
-# downgrade to remove game_users before trying this out.
+# example only
 
 class Game(Base):
+    __tablename__ = 'games'
 
-    # tablename, columns
+    id = Column(Integer(), primary_key=True)
+    title = Column(String())
+    genre = Column(String())
+    platform = Column(String())
+    price = Column(Integer())
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
 
-    users = relationship(
-        'User',
-        secondary='reviews',
-        viewonly=True,
-        backref='games')
+    reviews = relationship('Review', back_populates='game')
+    users = association_proxy('reviews', 'user',
+        creator=lambda us: Review(user=us))
 
-    # __repr__()
+    def __repr__(self):
+
+        return f'Game(id={self.id}, ' + \
+            f'title={self.title}, ' + \
+            f'platform={self.platform})'
 
 class User(Base):
+    __tablename__ = 'users'
 
-    # no need for a relationship here!
-    # back_populates() is one-way, but backref() takes care of both in
-    # the Game model.
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
+
+    reviews = relationship('Review', back_populates='user')
+    games = association_proxy('reviews', 'game',
+        creator=lambda gm: Review(game=gm))
+
+    def __repr__(self):
+
+        return f'User(id={self.id}, ' + \
+            f'name={self.name})'
+
+# See the most important piece below:
 
 class Review(Base):
     __tablename__ = 'reviews'
 
     id = Column(Integer(), primary_key=True)
+
     score = Column(Integer())
     comment = Column(String())
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
 
-    game_id = Column(Integer(), ForeignKey(Game.id))
-    game = relationship('Game', backref=backref('reviews'))
+    game_id = Column(Integer(), ForeignKey('games.id'))
+    user_id = Column(Integer(), ForeignKey('users.id'))
 
-    user_id = Column(Integer(), ForeignKey(User.id))
-    user = relationship(
-        'User', backref=backref('reviews')
-    )
+    game = relationship('Game', back_populates='reviews')
+    user = relationship('User', back_populates='reviews')
 
     def __repr__(self):
+
         return f'Review(id={self.id}, ' + \
             f'score={self.score}, ' + \
             f'game_id={self.game_id})'
 
 ```
-
-In this instance, we used `backref()` in place of `back_populates`. It is
-often more clear to use `back_populates` because it explicitly declares a
-relationship on both sides, but `backref()` populates both sides of the
-relationship and saves us a bit of code.
 
 The `Review` model has gotten rather big here, but it's doing more than enough
 to justify it:
@@ -387,6 +352,25 @@ to justify it:
 
 Because of those object relationships, the `relationship()` call in the `Game`
 model is able to skip over the `Review` model and directly link games and users.
+
+Notice in the `Game` and `User` models that we have added an `association_proxy`
+(imported from `sqlalchemy.ext.associationproxy`) to refer to the many-to-many
+related table. This states that there is an association through the `reviews`
+table's `game` or `user` column. The `creator` argument takes a function (an
+anonymous `lambda` function in this case) which accepts a game or user and
+returns a review for that game or user. This review has, in a sense, created the
+relationship between the game and user.
+
+As we mentioned earlier, this syntax is a bit complicated, and `Table` objects
+are still generally preferred. It is rare that the only thing joining two tables
+would be another concrete table like `reviews`. Still, these cases exist and
+some developers prefer to minimize the number of tables in their databases
+either way. Association Object Models are always good to have in your back pocket.
+
+A testing suite is available in this lesson for you to check your syntax in
+building a many-to-many relationship between games and users. Run `pytest -x`
+from the `lib/` directory to see if your models are working as expected- and
+don't forget to use Alembic to create your database first!
 
 ***
 
