@@ -27,12 +27,12 @@ SQLAlchemy. We'll continue working on our games and reviews domain, but this
 time we'll add a third model into the mix: a users model. We'll be setting up
 these relationships:
 
-- A game **has many** reviews
-- A game **has many** users, **through** reviews
-- A review **belongs to** a game
-- A review **belongs to** a user
-- A user **has many** reviews
-- A user **has many** games, **through** reviews
+- A game **has many** reviews.
+- A game **has many** users, **through** reviews.
+- A review **belongs to** a game.
+- A review **belongs to** a user.
+- A user **has many** reviews.
+- A user **has many** games, **through** reviews.
 
 Once we're done setting up the database tables, here's what the ERD will look like:
 
@@ -116,7 +116,7 @@ class Review(Base):
 ```
 
 Now run `alembic revision --autogenerate -m'Add User model'` from the
-`many-to-many` directory to make our migration. If all goes well, run
+`lib` directory to make our migration. If all goes well, run
 `alembic upgrade head` to push your migrations to the database.
 
 ```console
@@ -166,11 +166,16 @@ models' names, so let's call ours **`GameUser`**.
 class GameUser(Base):
     __tablename__ = "game_users"
 
-    game_id = Column(ForeignKey('games.id'), primary_key=True)
-    user_id = Column(ForeignKey('users.id'), primary_key=True)
+    id = Column(Integer(), primary_key=True)
+    game_id = Column(ForeignKey('games.id'))
+    user_id = Column(ForeignKey('users.id'))
 
-    game = relationship('Game', backref=backref('users'))
-    user = relationship('User', backref=backref('games'))
+    game = relationship('Game', back_populates='game_users')
+    user = relationship('User', back_populates='game_users')
+
+    def __init__(self, game=None, user=None):
+        self.game = game
+        self.user = user
 
     def __repr__(self):
         return f'GameUser(game_id={self.game_id}, ' + \
@@ -178,15 +183,68 @@ class GameUser(Base):
 
 ```
 
-An association object should typically use a combination of the related models'
-primary keys as its own primary key. This allows us to keep the field unique
-while also making it clear which two records its records point to.
+An association object can use either its own primary key or a combination of
+the two joined tables' primary keys as a unique identifier. Here, we use the
+simpler strategy and create an `id` column.
 
 Next, we use the `relationship()` method to connect to both the `Game` and
-`User` models. Note that we refer to the other related table in our `backref()`
-instead of `game_users`. We typically choose to hide association tables while
-our our application runs; this reference details the two endpoints of the
-association rather than the middle.
+`User` models. Here, we opt for the `back_populates` argument in place of
+`backref`. This is because when we're building out a many-to-many relationship,
+_many_ things can go wrong. In this case, it's difficult to use `backref` to
+populate each model with all the fields it needs without accidentally doing it
+twice. `back_populates` needs to be set up on both sides, but in cases like
+these, it's worth the (minimal) extra work.
+
+Below this, we define an `__init__` method. This is the piece that will
+ultimately allow us to directly add games to users and vice versa.
+
+Take a look at the rest of the code- think about what's changed from the last
+lesson:
+
+```py
+class Game(Base):
+    __tablename__ = 'games'
+
+    id = Column(Integer(), primary_key=True)
+    title = Column(String())
+    genre = Column(String())
+    platform = Column(String())
+    price = Column(Integer())
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
+
+    reviews = relationship('Review', backref=backref('game'))
+    game_users = relationship('GameUser', back_populates='game')
+    users = association_proxy('game_users', 'user',
+        creator=lambda us: GameUser(user=us))
+
+    def __repr__(self):
+
+        return f'Game(id={self.id}, ' + \
+            f'title={self.title}, ' + \
+            f'platform={self.platform})'
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
+
+    reviews = relationship('Review', backref=backref('user'))
+    game_users = relationship('GameUser', back_populates='user')
+    games = association_proxy('game_users', 'game',
+        creator=lambda gm: GameUser(game=gm))
+
+    def __repr__(self):
+
+        return f'User(id={self.id}, ' + \
+            f'name={self.name})'
+
+```
+
+Did you notice the
 
 Finally- don't forget your `__repr__`!
 
