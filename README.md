@@ -194,15 +194,17 @@ these, it's worth the (minimal) extra work.
 Finally- don't forget your `__repr__`!
 
 While this approach works, it's a bit wordy for a table that only exists to
-connect two others. The preferred approach to define many-to-many relationships
-using SQLAlchemy is with `Table` objects.
+connect two others. When a join table doesn't need any unique columns, the
+preferred approach to define many-to-many relationships using SQLAlchemy is with
+`Table` objects.
 
 ### Many-to-Many with `Table` Objects
 
 `Table` objects are instances of the `sqlalchemy.Table` class. They function
 more or less the same as data models, with the exception of being a little
 more compact. This syntax visually de-emphasizes association tables in your
-models and is the preferred approach in SQLAlchemy.
+models and is the preferred approach for simple many-to-many relationships in
+SQLAlchemy.
 
 Let's build the same association table as above with our new syntax:
 
@@ -260,14 +262,15 @@ logged a review for the game. When the change is committed, SQLAlchemy also
 builds the relationship in reverse, adding the `User` record to the `Game`
 record's `users`!
 
-### Bonus: Association Object Models
+### Association Object Models
 
 We all know that users can have games without reviewing them. That being said,
 our application might not allow users to claim ownership of a game without
-posting a review! If this is the case, we can consider skipping a join table
-entirely and use `Review` to join `User` and `Game`. This syntax is a bit more
-complicated, but you might find it useful in certain situations (perhaps like
-the _Phase 3 Code Challenge?_)
+posting a review! Furthermore, we may want to make sure that reviews of games
+automatically connect to the review's user and vice-versa. If this is the case,
+we can consider skipping a join table entirely and use `Review` to join `User`
+and `Game`. This syntax is a bit more complicated, but you might find it useful
+in certain situations (perhaps like the _Phase 3 Code Challenge?_)
 
 An association object functioning as a traditional data model looks like a
 combination of the two, with some key differences:
@@ -289,7 +292,7 @@ class Game(Base):
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
 
-    reviews = relationship('Review', back_populates='game')
+    reviews = relationship('Review', backref='game')
     users = association_proxy('reviews', 'user',
         creator=lambda us: Review(user=us))
 
@@ -307,7 +310,7 @@ class User(Base):
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
 
-    reviews = relationship('Review', back_populates='user')
+    reviews = relationship('Review', backref='user')
     games = association_proxy('reviews', 'game',
         creator=lambda gm: Review(game=gm))
 
@@ -330,9 +333,6 @@ class Review(Base):
 
     game_id = Column(Integer(), ForeignKey('games.id'))
     user_id = Column(Integer(), ForeignKey('users.id'))
-
-    game = relationship('Game', back_populates='reviews')
-    user = relationship('User', back_populates='reviews')
 
     def __repr__(self):
 
@@ -362,10 +362,13 @@ returns a review for that game or user. This review has, in a sense, created the
 relationship between the game and user.
 
 As we mentioned earlier, this syntax is a bit complicated, and `Table` objects
-are still generally preferred. It is rare that the only thing joining two tables
-would be another concrete table like `reviews`. Still, these cases exist and
-some developers prefer to minimize the number of tables in their databases
-either way. Association Object Models are always good to have in your back pocket.
+are still generally preferred when the extra functionality is not needed. It is
+rare that the only thing joining two tables would be another concrete table like
+`reviews`. Still, these cases exist and some developers prefer to minimize the
+number of tables in their databases either way. Remember that this syntax is
+also useful for making sure associations are populated through the intermediary
+table- sometimes, you might want to use a combination of Table objects and
+Association Object Models to build as tight of a relationship as possible.
 
 A testing suite is available in this lesson for you to check your syntax in
 building a many-to-many relationship between games and users. Run `pytest -x`
