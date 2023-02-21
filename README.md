@@ -38,7 +38,7 @@ Once we're done setting up the database tables, here's what the ERD will look li
 
 ![Game Reviews ERD](https://curriculum-content.s3.amazonaws.com/phase-3/active-record-associations-many-to-many/games-reviews-users-erd.png)
 
-To get started, run `pipenv install && pipenv shell`, then follow along with
+To get started, run `pipenv install; pipenv shell`, then follow along with
 the code.
 
 ***
