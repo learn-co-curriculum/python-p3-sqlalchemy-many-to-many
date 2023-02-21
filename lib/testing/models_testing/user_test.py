@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from conftest import SQLITE_URL
 from models import User, Game, Review
 
 class TestUser:
@@ -9,7 +10,7 @@ class TestUser:
     def test_has_attributes(self):
         '''has attributes id, name, created_at, updated_at, reviews, and games.'''
         
-        engine = create_engine("sqlite:///many_to_many.db")
+        engine = create_engine(SQLITE_URL)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -30,7 +31,7 @@ class TestUser:
     def test_has_many_reviews(self):
         '''has an attribute "reviews" that is a sequence of Review records.'''
 
-        engine = create_engine("sqlite:///many_to_many.db")
+        engine = create_engine(SQLITE_URL)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -56,7 +57,7 @@ class TestUser:
     def test_has_many_games(self):
         '''has an attribute "games" that is a sequence of Game records.'''
 
-        engine = create_engine("sqlite:///many_to_many.db")
+        engine = create_engine(SQLITE_URL)
         Session = sessionmaker(bind=engine)
         session = Session()
 
