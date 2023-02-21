@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from models import User, Game, Review
+from conftest import SQLITE_URL
 
 class TestReview:
     '''Review in models.py'''
@@ -9,7 +10,7 @@ class TestReview:
     def test_has_attributes(self):
         '''has attributes id, score, comment, created_at, updated_at, game_id, and user_id.'''
         
-        engine = create_engine("sqlite:///many_to_many.db")
+        engine = create_engine(SQLITE_URL)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -31,7 +32,7 @@ class TestReview:
     def test_has_one_user_id(self):
         '''has an attribute "user_id", an int that is a foreign key to the users table.'''
 
-        engine = create_engine("sqlite:///many_to_many.db")
+        engine = create_engine(SQLITE_URL)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -54,7 +55,7 @@ class TestReview:
     def test_has_one_user(self):
         '''has an attribute "user" in the ORM that is a record from the users table.'''
 
-        engine = create_engine("sqlite:///many_to_many.db")
+        engine = create_engine(SQLITE_URL)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -78,7 +79,7 @@ class TestReview:
     def test_has_one_game_id(self):
         '''has an attribute "game_id", an int that is a foreign key to the games table.'''
 
-        engine = create_engine("sqlite:///many_to_many.db")
+        engine = create_engine(SQLITE_URL)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -101,7 +102,7 @@ class TestReview:
     def test_has_one_game(self):
         '''has an attribute "game" in the ORM that is a record from the games table.'''
 
-        engine = create_engine("sqlite:///many_to_many.db")
+        engine = create_engine(SQLITE_URL)
         Session = sessionmaker(bind=engine)
         session = Session()
 
