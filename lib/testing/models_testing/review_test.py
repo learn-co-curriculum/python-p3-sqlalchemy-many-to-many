@@ -8,7 +8,7 @@ class TestReview:
     '''Review in models.py'''
 
     def test_has_attributes(self):
-        '''has attributes id, score, comment, created_at, updated_at, game_id, and user_id.'''
+        '''has attributes id, score, comment, game_id, and user_id.'''
         
         engine = create_engine(SQLITE_URL)
         Session = sessionmaker(bind=engine)
@@ -21,8 +21,6 @@ class TestReview:
         assert hasattr(review, "id")
         assert hasattr(review, "score")
         assert hasattr(review, "comment")
-        assert hasattr(review, "created_at")
-        assert hasattr(review, "updated_at")
         assert hasattr(review, "game_id")
         assert hasattr(review, "user_id")
 

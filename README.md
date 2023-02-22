@@ -38,7 +38,7 @@ Once we're done setting up the database tables, here's what the ERD will look li
 
 ![Game Reviews ERD](https://curriculum-content.s3.amazonaws.com/phase-3/active-record-associations-many-to-many/games-reviews-users-erd.png)
 
-To get started, run `pipenv install && pipenv shell`, then follow along with
+To get started, run `pipenv install; pipenv shell`, then follow along with
 the code.
 
 ***
@@ -81,6 +81,11 @@ values:
 - We saw `func` briefly in the previous module; it allows us to use SQL
   operations instead of their Python counterparts. This benefits us for the same
   reasons as `server_default`. `func.now()` is equivalent to the current time.
+
+> **Note: If you add these timestamps to your `Game` and `Review` models (not
+> a bad idea), you will have to clear the data in your database before running
+> your new migration. This is because SQLite can't populate existing records
+> with dynamic default values, like `func.now()`.**
 
 We'll also need to modify the `reviews` table and add a foreign key to refer to
 our `users` table. Remember, each review now **belongs to** a specific user. Any
@@ -289,8 +294,6 @@ class Game(Base):
     genre = Column(String())
     platform = Column(String())
     price = Column(Integer())
-    created_at = Column(DateTime(), server_default=func.now())
-    updated_at = Column(DateTime(), onupdate=func.now())
 
     reviews = relationship('Review', backref='game')
     users = association_proxy('reviews', 'user',
@@ -328,8 +331,6 @@ class Review(Base):
 
     score = Column(Integer())
     comment = Column(String())
-    created_at = Column(DateTime(), server_default=func.now())
-    updated_at = Column(DateTime(), onupdate=func.now())
 
     game_id = Column(Integer(), ForeignKey('games.id'))
     user_id = Column(Integer(), ForeignKey('users.id'))
@@ -433,8 +434,6 @@ class Game(Base):
     genre = Column(String())
     platform = Column(String())
     price = Column(Integer())
-    created_at = Column(DateTime(), server_default=func.now())
-    updated_at = Column(DateTime(), onupdate=func.now())
 
     users = relationship('User', secondary=game_user, back_populates='games')
     reviews = relationship('Review', backref=backref('game'))
@@ -466,8 +465,6 @@ class Review(Base):
 
     score = Column(Integer())
     comment = Column(String())
-    created_at = Column(DateTime(), server_default=func.now())
-    updated_at = Column(DateTime(), onupdate=func.now())
 
     game_id = Column(Integer(), ForeignKey('games.id'))
     user_id = Column(Integer(), ForeignKey('users.id'))

@@ -8,7 +8,7 @@ class TestGame:
     '''Game in models.py'''
 
     def test_has_attributes(self):
-        '''has attributes id, title, genre, platform, price, created_at, updated_at, reviews, and users.'''
+        '''has attributes id, title, genre, platform, price, reviews, and users.'''
         
         engine = create_engine(SQLITE_URL)
         Session = sessionmaker(bind=engine)
@@ -23,8 +23,6 @@ class TestGame:
         assert hasattr(game, "genre")
         assert hasattr(game, "platform")
         assert hasattr(game, "price")
-        assert hasattr(game, "created_at")
-        assert hasattr(game, "updated_at")
         assert hasattr(game, "reviews")
         assert hasattr(game, "users")
 
