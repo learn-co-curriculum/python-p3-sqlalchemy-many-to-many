@@ -47,7 +47,16 @@ the code.
 
 Right now, we've got code for the `Game` model (and the `games` table), along
 with the code for the `Review` model (and the `reviews` table) from the previous
-lesson.
+lesson. Run the following to generate a new database reflecting your work up to
+this point:
+
+```console
+$ alembic upgrade head
+# => INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+# => INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+# => INFO  [alembic.runtime.migration] Running upgrade  -> c583fbf23739, create db
+# => INFO  [alembic.runtime.migration] Running upgrade c583fbf23739 -> a119c69f9a52, create one-to-many relationship
+```
 
 To start, let's add the code we'll need for the `User` model as well. Let's
 create the `users` table with a `name` column and timestamps:
