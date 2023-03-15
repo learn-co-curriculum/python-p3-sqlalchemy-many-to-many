@@ -1,8 +1,8 @@
-"""create one-to-many relationship
+"""create tables games, reviews
 
-Revision ID: a119c69f9a52
-Revises: c6306d9e3906
-Create Date: 2023-01-30 13:44:43.399292
+Revision ID: a28af33e6866
+Revises: 3c16dffa4b50
+Create Date: 2023-03-15 13:34:48.394569
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a119c69f9a52'
-down_revision = 'c583fbf23739'
+revision = 'a28af33e6866'
+down_revision = '3c16dffa4b50'
 branch_labels = None
 depends_on = None
 
@@ -31,7 +31,7 @@ def upgrade() -> None:
     sa.Column('score', sa.Integer(), nullable=True),
     sa.Column('comment', sa.String(), nullable=True),
     sa.Column('game_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['game_id'], ['games.id'], ),
+    sa.ForeignKeyConstraint(['game_id'], ['games.id'], name=op.f('fk_reviews_game_id_games')),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
