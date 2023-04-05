@@ -293,7 +293,7 @@ combination of the two, with some key differences:
 > out!**
 
 ```py
-# example only
+# EXAMPLE ONLY!!!
 
 class Game(Base):
     __tablename__ = 'games'
@@ -303,8 +303,10 @@ class Game(Base):
     genre = Column(String())
     platform = Column(String())
     price = Column(Integer())
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
 
-    reviews = relationship('Review', backref='game')
+    reviews = relationship('Review', back_populates='game')
     users = association_proxy('reviews', 'user',
         creator=lambda us: Review(user=us))
 
@@ -322,7 +324,7 @@ class User(Base):
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
 
-    reviews = relationship('Review', backref='user')
+    reviews = relationship('Review', back_populates='user')
     games = association_proxy('reviews', 'game',
         creator=lambda gm: Review(game=gm))
 
@@ -331,8 +333,6 @@ class User(Base):
         return f'User(id={self.id}, ' + \
             f'name={self.name})'
 
-# See the most important piece below:
-
 class Review(Base):
     __tablename__ = 'reviews'
 
@@ -340,9 +340,14 @@ class Review(Base):
 
     score = Column(Integer())
     comment = Column(String())
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
 
     game_id = Column(Integer(), ForeignKey('games.id'))
     user_id = Column(Integer(), ForeignKey('users.id'))
+
+    game = relationship('Game', back_populates='reviews')
+    user = relationship('User', back_populates='reviews')
 
     def __repr__(self):
 
