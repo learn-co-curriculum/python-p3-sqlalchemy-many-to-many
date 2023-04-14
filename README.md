@@ -306,7 +306,7 @@ class Game(Base):
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
 
-    reviews = relationship('Review', back_populates='game')
+    reviews = relationship('Review', back_populates='game', cascade='all, delete-orphan')
     users = association_proxy('reviews', 'user',
         creator=lambda us: Review(user=us))
 
@@ -324,7 +324,7 @@ class User(Base):
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
 
-    reviews = relationship('Review', back_populates='user')
+    reviews = relationship('Review', back_populates='user', cascade='all, delete-orphan')
     games = association_proxy('reviews', 'game',
         creator=lambda gm: Review(game=gm))
 
@@ -450,7 +450,7 @@ class Game(Base):
     price = Column(Integer())
 
     users = relationship('User', secondary=game_user, back_populates='games')
-    reviews = relationship('Review', backref=backref('game'))
+    reviews = relationship('Review', backref=backref('game'), cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'Game(id={self.id}, ' + \
@@ -466,7 +466,7 @@ class User(Base):
     updated_at = Column(DateTime(), onupdate=func.now())
 
     games = relationship('Game', secondary=game_user, back_populates='users')
-    reviews = relationship('Review', backref=backref('user'))
+    reviews = relationship('Review', backref=backref('user'), cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'User(id={self.id}, ' + \
