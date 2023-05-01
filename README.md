@@ -266,7 +266,7 @@ A few more notes on this approach:
   best way to leave readable code behind for other developers.
 
 Run `alembic revision --autogenerate -m'Add game_user Association Table'`, then
-`alembic upgrade head`. You can use the script in `app/seed_2.py` to generate new
+`alembic upgrade head`. You can use the script in `lib/seed_2.py` to generate new
 data and interact with your database through the Python shell. To create
 relationships between `Game` records and `User` records, run the second seed
 file with `python seed_2.py`.
