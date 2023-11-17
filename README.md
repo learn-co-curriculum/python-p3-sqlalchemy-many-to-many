@@ -39,7 +39,7 @@ like:
 
 ![Game Reviews ERD](https://curriculum-content.s3.amazonaws.com/phase-3/active-record-associations-many-to-many/games-reviews-users-erd.png)
 
-To get started, run `pipenv install; pipenv shell`, then follow along with the
+To get started, run `pipenv install && pipenv shell`, then follow along with the
 code.
 
 ---
